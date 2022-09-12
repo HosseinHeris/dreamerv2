@@ -165,7 +165,7 @@ class WorldModel(common.Module):
 
   @tf.function
   def preprocess(self, obs):
-    dtype = prec.global_policy().compute_dtype
+    dtype = prec.experimental.global_policy().compute_dtype
     obs = obs.copy()
     for key, value in obs.items():
       if key.startswith('log_'):
