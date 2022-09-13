@@ -7,7 +7,6 @@ import uuid
 import numpy as np
 import tensorflow as tf
 
-
 class Replay:
 
   def __init__(

@@ -637,3 +637,8 @@ class Async:
         conn.close()
       except IOError:
         pass  # The connection was already closed.
+
+if __name__ == "__main___":
+  import gym
+  env = gym.make('CartPole-v0')
+  

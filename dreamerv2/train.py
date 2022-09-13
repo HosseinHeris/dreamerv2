@@ -91,6 +91,11 @@ def main():
       reward = bool(['noreward', 'reward'].index(task)) or mode == 'eval'
       env = common.Crafter(outdir, reward)
       env = common.OneHotAction(env)
+    elif suite == 'gymcontrol':
+      env = common.Gymcontrol(
+          task, config.action_repeat, config.render_size,
+          config.atari_grayscale)
+      env = common.OneHotAction(env)        
     else:
       raise NotImplementedError(suite)
     env = common.TimeLimit(env, config.time_limit)

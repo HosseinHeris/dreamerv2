@@ -3,7 +3,7 @@ defaults:
   # Train Script
   logdir: /dev/null
   seed: 0
-  task: dmc_walker_walk
+  task: CartPole-v0
   envs: 1
   envs_parallel: none
   render_size: [64, 64]
@@ -154,6 +154,27 @@ dmc_proprio:
   critic_opt.lr: 8e-5
   actor_ent: 1e-4
   kl.free: 1.0
+
+gymcontrol:
+  task: gymcontrol_CartPole-v0
+  encoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  decoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  time_limit: 27000
+  action_repeat: 4
+  steps: 5e7
+  eval_every: 2.5e5
+  log_every: 1e4
+  prefill: 50000
+  train_every: 16
+  clip_rewards: tanh
+  rssm: {hidden: 600, deter: 600}
+  model_opt.lr: 2e-4
+  actor_opt.lr: 4e-5
+  critic_opt.lr: 1e-4
+  actor_ent: 1e-3
+  discount: 0.999
+  loss_scales.kl: 0.1
+  loss_scales.discount: 5.0
 
 debug:
 
