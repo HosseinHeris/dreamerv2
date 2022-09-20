@@ -11,7 +11,7 @@ import numpy as np
 
 class GymWrapper:
 
-  def __init__(self, env, obs_key='image', act_key='action'):
+  def __init__(self, env, obs_key='sensor', act_key='action'):
     self._env = gym.make(env)
     self._obs_is_dict = hasattr(self._env.observation_space, 'spaces')
     self._act_is_dict = hasattr(self._env.action_space, 'spaces')
@@ -35,6 +35,7 @@ class GymWrapper:
       spaces = {self._obs_key: self._env.observation_space}
     return {
         **spaces,
+        'image': gym.spaces.Box(0, 255, (64, 64, 3), dtype=np.uint8), # dummy
         'reward': gym.spaces.Box(-np.inf, np.inf, (), dtype=np.float32),
         'is_first': gym.spaces.Box(0, 1, (), dtype=np.bool),
         'is_last': gym.spaces.Box(0, 1, (), dtype=np.bool),
@@ -49,10 +50,10 @@ class GymWrapper:
       return {self._act_key: self._env.action_space}
 
   def step(self, action):
-    print(f'action is {action}')
+    #print(f'action is {action}')
     if not self._act_is_dict:
       action = action[self._act_key]
-      print('action to step is', action)
+      #print('action to step is', action)
     obs, reward, done, info = self._env.step(action)
     if not self._obs_is_dict:
       obs = {self._obs_key: obs}
@@ -60,7 +61,8 @@ class GymWrapper:
     obs['is_first'] = False
     obs['is_last'] = done
     obs['is_terminal'] = info.get('is_terminal', done)
-    print(f'obs is {obs}')
+    obs['image'] = np.zeros((64, 64, 3))
+    #print(f'obs is {obs}')
     # import time as tt
     # tt.sleep(3)
     return obs
@@ -73,6 +75,7 @@ class GymWrapper:
     obs['is_first'] = True
     obs['is_last'] = False
     obs['is_terminal'] = False
+    obs['image'] = np.zeros((64, 64, 3))
     return obs
 
 
