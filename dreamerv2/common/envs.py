@@ -11,10 +11,11 @@ import numpy as np
 
 class GymWrapper:
 
-  def __init__(self, env, obs_key='image', act_key='action'):
-    self._env = env
+  def __init__(self, env, obs_key='sensor', act_key='action'):
+    self._env = gym.make(env)
     self._obs_is_dict = hasattr(self._env.observation_space, 'spaces')
     self._act_is_dict = hasattr(self._env.action_space, 'spaces')
+    print('is action dictionary', self._act_is_dict)
     self._obs_key = obs_key
     self._act_key = act_key
 
@@ -34,6 +35,7 @@ class GymWrapper:
       spaces = {self._obs_key: self._env.observation_space}
     return {
         **spaces,
+        'image': gym.spaces.Box(0, 255, (64, 64, 3), dtype=np.uint8), # dummy
         'reward': gym.spaces.Box(-np.inf, np.inf, (), dtype=np.float32),
         'is_first': gym.spaces.Box(0, 1, (), dtype=np.bool),
         'is_last': gym.spaces.Box(0, 1, (), dtype=np.bool),
@@ -48,8 +50,10 @@ class GymWrapper:
       return {self._act_key: self._env.action_space}
 
   def step(self, action):
+    #print(f'action is {action}')
     if not self._act_is_dict:
       action = action[self._act_key]
+      #print('action to step is', action)
     obs, reward, done, info = self._env.step(action)
     if not self._obs_is_dict:
       obs = {self._obs_key: obs}
@@ -57,6 +61,10 @@ class GymWrapper:
     obs['is_first'] = False
     obs['is_last'] = done
     obs['is_terminal'] = info.get('is_terminal', done)
+    obs['image'] = np.zeros((64, 64, 3))
+    #print(f'obs is {obs}')
+    # import time as tt
+    # tt.sleep(3)
     return obs
 
   def reset(self):
@@ -67,6 +75,7 @@ class GymWrapper:
     obs['is_first'] = True
     obs['is_last'] = False
     obs['is_terminal'] = False
+    obs['image'] = np.zeros((64, 64, 3))
     return obs
 
 
@@ -74,6 +83,7 @@ class DMC:
 
   def __init__(self, name, action_repeat=1, size=(64, 64), camera=None):
     os.environ['MUJOCO_GL'] = 'egl'
+    print(name)
     domain, task = name.split('_', 1)
     if domain == 'cup':  # Only domain with multiple words.
       domain = 'ball_in_cup'
@@ -85,6 +95,7 @@ class DMC:
       self._env = getattr(basic_rodent_2020, task)()
     else:
       from dm_control import suite
+      print(domain, task)
       self._env = suite.load(domain, task)
     self._action_repeat = action_repeat
     self._size = size
@@ -96,6 +107,7 @@ class DMC:
       ).get(name, 0)
     self._camera = camera
     self._ignored_keys = []
+    print('obs_spc', self._env.observation_spec().items())
     for key, value in self._env.observation_spec().items():
       if value.shape == (0,):
         print(f"Ignoring empty observation key '{key}'.")
@@ -119,6 +131,7 @@ class DMC:
         spaces[key] = gym.spaces.Box(0, 255, value.shape, np.uint8)
       else:
         raise NotImplementedError(value.dtype)
+    print('spaces:', spaces)
     return spaces
 
   @property
@@ -297,6 +310,75 @@ class Crafter:
         for k in self._achievements})
     return obs
 
+class Gymcontrol:
+
+  LOCK = threading.Lock()
+
+  def __init__(
+      self, name, action_repeat=4, size=(84, 84), grayscale=True, noops=30,
+      life_done=False, sticky=True, all_actions=False):
+    assert size[0] == size[1]
+    import gym.wrappers
+    import gym
+    with self.LOCK:
+      env = gym.make(
+          game=name, obs_type='sensor', frameskip=1,
+          repeat_action_probability=0.25 if sticky else 0.0,
+          full_action_space=all_actions)
+    # Avoid unnecessary rendering in inner env.
+    env._get_obs = lambda: None
+    # Tell wrapper that the inner env has no action repeat.
+    env.spec = gym.envs.registration.EnvSpec('NoFrameskip-v0')
+    self._env = gym.wrappers.AtariPreprocessing(
+        env, noops, action_repeat, size[0], life_done, grayscale)
+    self._size = size
+    self._grayscale = grayscale
+
+  @property
+  def obs_space(self):
+    shape = self._size + (1 if self._grayscale else 3,)
+    return {
+        'image': gym.spaces.Box(0, 255, shape, np.uint8),
+        'ram': gym.spaces.Box(0, 255, (128,), np.uint8),
+        'reward': gym.spaces.Box(-np.inf, np.inf, (), dtype=np.float32),
+        'is_first': gym.spaces.Box(0, 1, (), dtype=np.bool),
+        'is_last': gym.spaces.Box(0, 1, (), dtype=np.bool),
+        'is_terminal': gym.spaces.Box(0, 1, (), dtype=np.bool),
+    }
+
+  @property
+  def act_space(self):
+    return {'action': self._env.action_space}
+
+  def step(self, action):
+    image, reward, done, info = self._env.step(action['action'])
+    if self._grayscale:
+      image = image[..., None]
+    return {
+        'image': image,
+        'ram': self._env.env._get_ram(),
+        'reward': reward,
+        'is_first': False,
+        'is_last': done,
+        'is_terminal': done,
+    }
+
+  def reset(self):
+    with self.LOCK:
+      image = self._env.reset()
+    if self._grayscale:
+      image = image[..., None]
+    return {
+        'image': image,
+        'ram': self._env.env._get_ram(),
+        'reward': 0.0,
+        'is_first': True,
+        'is_last': False,
+        'is_terminal': False,
+    }
+
+  def close(self):
+    return self._env.close()
 
 class Dummy:
 
@@ -371,6 +453,7 @@ class NormalizeAction:
     self._env = env
     self._key = key
     space = env.act_space[key]
+    print('space limit', space.low, space.high)
     self._mask = np.isfinite(space.low) & np.isfinite(space.high)
     self._low = np.where(self._mask, space.low, -1)
     self._high = np.where(self._mask, space.high, 1)
@@ -637,3 +720,8 @@ class Async:
         conn.close()
       except IOError:
         pass  # The connection was already closed.
+
+if __name__ == "__main___":
+  import gym
+  env = gym.make('CartPole-v0')
+  

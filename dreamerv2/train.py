@@ -91,6 +91,10 @@ def main():
       reward = bool(['noreward', 'reward'].index(task)) or mode == 'eval'
       env = common.Crafter(outdir, reward)
       env = common.OneHotAction(env)
+    elif suite == 'gym':
+      env = common.GymWrapper(task)
+      env = common.NormalizeAction(env)
+      #env = common.OneHotAction(env)
     else:
       raise NotImplementedError(suite)
     env = common.TimeLimit(env, config.time_limit)
