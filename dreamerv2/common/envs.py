@@ -74,6 +74,7 @@ class DMC:
 
   def __init__(self, name, action_repeat=1, size=(64, 64), camera=None):
     os.environ['MUJOCO_GL'] = 'egl'
+    print(name)
     domain, task = name.split('_', 1)
     if domain == 'cup':  # Only domain with multiple words.
       domain = 'ball_in_cup'
@@ -85,6 +86,7 @@ class DMC:
       self._env = getattr(basic_rodent_2020, task)()
     else:
       from dm_control import suite
+      print(domain, task)
       self._env = suite.load(domain, task)
     self._action_repeat = action_repeat
     self._size = size
@@ -96,6 +98,7 @@ class DMC:
       ).get(name, 0)
     self._camera = camera
     self._ignored_keys = []
+    print('obs_spc', self._env.observation_spec().items())
     for key, value in self._env.observation_spec().items():
       if value.shape == (0,):
         print(f"Ignoring empty observation key '{key}'.")
@@ -119,6 +122,7 @@ class DMC:
         spaces[key] = gym.spaces.Box(0, 255, value.shape, np.uint8)
       else:
         raise NotImplementedError(value.dtype)
+    print('spaces:', spaces)
     return spaces
 
   @property
