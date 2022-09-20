@@ -297,6 +297,75 @@ class Crafter:
         for k in self._achievements})
     return obs
 
+class Gymcontrol:
+
+  LOCK = threading.Lock()
+
+  def __init__(
+      self, name, action_repeat=4, size=(84, 84), grayscale=True, noops=30,
+      life_done=False, sticky=True, all_actions=False):
+    assert size[0] == size[1]
+    import gym.wrappers
+    import gym
+    with self.LOCK:
+      env = gym.make(
+          game=name, obs_type='sensor', frameskip=1,
+          repeat_action_probability=0.25 if sticky else 0.0,
+          full_action_space=all_actions)
+    # Avoid unnecessary rendering in inner env.
+    env._get_obs = lambda: None
+    # Tell wrapper that the inner env has no action repeat.
+    env.spec = gym.envs.registration.EnvSpec('NoFrameskip-v0')
+    self._env = gym.wrappers.AtariPreprocessing(
+        env, noops, action_repeat, size[0], life_done, grayscale)
+    self._size = size
+    self._grayscale = grayscale
+
+  @property
+  def obs_space(self):
+    shape = self._size + (1 if self._grayscale else 3,)
+    return {
+        'image': gym.spaces.Box(0, 255, shape, np.uint8),
+        'ram': gym.spaces.Box(0, 255, (128,), np.uint8),
+        'reward': gym.spaces.Box(-np.inf, np.inf, (), dtype=np.float32),
+        'is_first': gym.spaces.Box(0, 1, (), dtype=np.bool),
+        'is_last': gym.spaces.Box(0, 1, (), dtype=np.bool),
+        'is_terminal': gym.spaces.Box(0, 1, (), dtype=np.bool),
+    }
+
+  @property
+  def act_space(self):
+    return {'action': self._env.action_space}
+
+  def step(self, action):
+    image, reward, done, info = self._env.step(action['action'])
+    if self._grayscale:
+      image = image[..., None]
+    return {
+        'image': image,
+        'ram': self._env.env._get_ram(),
+        'reward': reward,
+        'is_first': False,
+        'is_last': done,
+        'is_terminal': done,
+    }
+
+  def reset(self):
+    with self.LOCK:
+      image = self._env.reset()
+    if self._grayscale:
+      image = image[..., None]
+    return {
+        'image': image,
+        'ram': self._env.env._get_ram(),
+        'reward': 0.0,
+        'is_first': True,
+        'is_last': False,
+        'is_terminal': False,
+    }
+
+  def close(self):
+    return self._env.close()
 
 class Dummy:
 

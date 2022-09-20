@@ -15,9 +15,9 @@
                 "--logdir",
                 "~/logdir/cartpole/dreamerv2/1",
                 "--configs",
-                "gymcontrol",
+                "atari",
                 "--task",
-                "gymcontrol_CartPole-v0"
+                "atari_pong"
             ]
         }
     ]

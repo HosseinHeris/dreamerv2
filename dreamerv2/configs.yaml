@@ -157,8 +157,8 @@ dmc_proprio:
 
 gymcontrol:
   task: gymcontrol_CartPole-v0
-  encoder: {mlp_keys: '$^', cnn_keys: 'image'}
-  decoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  encoder: {mlp_keys: '.*', cnn_keys: '$^'}
+  decoder: {mlp_keys: '.*', cnn_keys: '$^'}
   time_limit: 27000
   action_repeat: 4
   steps: 5e7
