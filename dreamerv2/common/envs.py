@@ -12,9 +12,10 @@ import numpy as np
 class GymWrapper:
 
   def __init__(self, env, obs_key='image', act_key='action'):
-    self._env = env
+    self._env = gym.make(env)
     self._obs_is_dict = hasattr(self._env.observation_space, 'spaces')
     self._act_is_dict = hasattr(self._env.action_space, 'spaces')
+    print('is action dictionary', self._act_is_dict)
     self._obs_key = obs_key
     self._act_key = act_key
 
@@ -48,8 +49,10 @@ class GymWrapper:
       return {self._act_key: self._env.action_space}
 
   def step(self, action):
+    print(f'action is {action}')
     if not self._act_is_dict:
       action = action[self._act_key]
+      print('action to step is', action)
     obs, reward, done, info = self._env.step(action)
     if not self._obs_is_dict:
       obs = {self._obs_key: obs}
@@ -57,6 +60,9 @@ class GymWrapper:
     obs['is_first'] = False
     obs['is_last'] = done
     obs['is_terminal'] = info.get('is_terminal', done)
+    print(f'obs is {obs}')
+    # import time as tt
+    # tt.sleep(3)
     return obs
 
   def reset(self):
@@ -444,6 +450,7 @@ class NormalizeAction:
     self._env = env
     self._key = key
     space = env.act_space[key]
+    print('space limit', space.low, space.high)
     self._mask = np.isfinite(space.low) & np.isfinite(space.high)
     self._low = np.where(self._mask, space.low, -1)
     self._high = np.where(self._mask, space.high, 1)

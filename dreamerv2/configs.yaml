@@ -156,7 +156,7 @@ dmc_proprio:
   kl.free: 1.0
   
 gym:
-  task: gymcontrol_CartPole-v0
+  task: gym_MountainCarContinuous-v0
   encoder: {mlp_keys: '.*', cnn_keys: '$^'}
   decoder: {mlp_keys: '.*', cnn_keys: '$^'}
   time_limit: 27000
@@ -176,8 +176,8 @@ gym:
   loss_scales.kl: 0.1
   loss_scales.discount: 5.0
 
-gymcontrol:
-  task: gymcontrol_CartPole-v0
+gymdiscrete:
+  task: gydiscrete_CartPole-v0
   encoder: {mlp_keys: '.*', cnn_keys: '$^'}
   decoder: {mlp_keys: '.*', cnn_keys: '$^'}
   time_limit: 27000
