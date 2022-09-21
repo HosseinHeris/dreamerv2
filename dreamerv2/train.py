@@ -6,7 +6,6 @@ import pathlib
 import re
 import sys
 import warnings
-
 try:
   import rich.traceback
   rich.traceback.install()
@@ -58,7 +57,7 @@ def main():
   eval_replay = common.Replay(logdir / 'eval_episodes', **dict(
       capacity=config.replay.capacity // 10,
       minlen=config.dataset.length,
-      maxlen=config.dataset.length))
+      maxlen=50))
   step = common.Counter(train_replay.stats['total_steps'])
   outputs = [
       common.TerminalOutput(),
@@ -92,6 +91,10 @@ def main():
       env = common.Crafter(outdir, reward)
       env = common.OneHotAction(env)
     elif suite == 'gym':
+      #if task =='HouseEnergy-v0':
+      #   env = common.GymWrapper(task)
+      #   env = common.OneHotAction(env)
+      # else:  
       env = common.GymWrapper(task)
       env = common.NormalizeAction(env)
       #env = common.OneHotAction(env)

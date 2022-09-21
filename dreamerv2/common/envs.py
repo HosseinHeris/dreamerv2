@@ -5,14 +5,16 @@ import threading
 import traceback
 
 import cloudpickle
-import gym
+import gym, bonsai_benchmark_gym
 import numpy as np
 
 
 class GymWrapper:
 
   def __init__(self, env, obs_key='sensor', act_key='action'):
+    print('env is', env)
     self._env = gym.make(env)
+
     self._obs_is_dict = hasattr(self._env.observation_space, 'spaces')
     self._act_is_dict = hasattr(self._env.action_space, 'spaces')
     print('is action dictionary', self._act_is_dict)
@@ -54,9 +56,9 @@ class GymWrapper:
     if not self._act_is_dict:
       action = action[self._act_key]
       #print('action to step is', action)
-    obs, reward, done, info = self._env.step(action)
+    obs1, reward, done, info = self._env.step(action)
     if not self._obs_is_dict:
-      obs = {self._obs_key: obs}
+      obs = {self._obs_key: obs1.tolist()}
     obs['reward'] = float(reward)
     obs['is_first'] = False
     obs['is_last'] = done
@@ -68,9 +70,10 @@ class GymWrapper:
     return obs
 
   def reset(self):
-    obs = self._env.reset()
+    obs1 = np.array(self._env.reset())
+    print('obs1 is ......................:\n', obs1.tolist())
     if not self._obs_is_dict:
-      obs = {self._obs_key: obs}
+      obs = {self._obs_key: obs1.tolist()}
     obs['reward'] = 0.0
     obs['is_first'] = True
     obs['is_last'] = False
@@ -131,7 +134,7 @@ class DMC:
         spaces[key] = gym.spaces.Box(0, 255, value.shape, np.uint8)
       else:
         raise NotImplementedError(value.dtype)
-    print('spaces:', spaces)
+    #print('spaces:', spaces)
     return spaces
 
   @property

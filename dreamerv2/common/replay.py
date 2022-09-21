@@ -88,11 +88,20 @@ class Replay:
       yield chunk
 
   def _sample_sequence(self):
+    print('min_len', self._minlen)
+    #hkh overwrites 
+    #self._minlen = 1
+    #print('min_len after hard code', self._minlen)
+
     episodes = list(self._complete_eps.values())
+    print('epsiodes', episodes)
     if self._ongoing:
       episodes += [
           x for x in self._ongoing_eps.values()
           if eplen(x) >= self._minlen]
+    # import time as tt
+    # print('episodes are:', episodes)
+    # tt.sleep(5)      
     episode = self._random.choice(episodes)
     total = len(episode['action'])
     length = total
