@@ -91,13 +91,15 @@ def main():
       env = common.Crafter(outdir, reward)
       env = common.OneHotAction(env)
     elif suite == 'gym':
-      #if task =='HouseEnergy-v0':
-      #   env = common.GymWrapper(task)
-      #   env = common.OneHotAction(env)
-      # else:  
-      env = common.GymWrapper(task)
-      env = common.NormalizeAction(env)
-      #env = common.OneHotAction(env)
+      if task =='HouseEnergy-v0':
+        env = common.GymWrapper(task)
+        env = common.OneHotAction(env)
+      elif task =='Moab-v0':  
+        env = common.GymWrapper(task)
+        env = common.NormalizeAction(env)
+      else:
+        env = common.GymWrapper(task)
+        env = common.NormalizeAction(env)
     else:
       raise NotImplementedError(suite)
     env = common.TimeLimit(env, config.time_limit)
