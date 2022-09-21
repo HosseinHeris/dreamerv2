@@ -99,7 +99,10 @@ def main():
         env = common.NormalizeAction(env)
       else:
         env = common.GymWrapper(task)
-        env = common.NormalizeAction(env)
+        if "Discrete" in str(env._env.action_space):
+          env = common.OneHotAction(env)
+        else:
+          env = common.NormalizeAction(env)
     else:
       raise NotImplementedError(suite)
     env = common.TimeLimit(env, config.time_limit)
