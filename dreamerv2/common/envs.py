@@ -14,7 +14,7 @@ from industrial_benchmark_python.IBGym import IBGym
 class GymWrapper:
 
   def __init__(self, env, obs_key='sensor', act_key='action'):
-    if type(env) == str:
+    if isinstance(env, str):
       self._env = gym.make(env)
     else:
       self._env = env
