@@ -82,4 +82,5 @@ dependencies:
     - werkzeug==2.2.2
     - wrapt==1.12.1
     - zipp==3.8.1
+    - -e git+https://github.com/siemens/industrialbenchmark.git@ee195860c3b010d0d16be76ab2ca00d87b241a35#egg=industrial_benchmark_python
 prefix: /home/heris/miniconda3/envs/dreamer3
