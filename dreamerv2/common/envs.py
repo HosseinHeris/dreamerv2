@@ -57,29 +57,37 @@ class GymWrapper:
       action = action[self._act_key]
       #print('action to step is', action)
     obs1, reward, done, info = self._env.step(action)
+    obs1 = self.normalize_obs(obs1)
     if not self._obs_is_dict:
       obs = {self._obs_key: obs1.tolist()}
     obs['reward'] = float(reward)
     obs['is_first'] = False
     obs['is_last'] = done
     obs['is_terminal'] = info.get('is_terminal', done)
-    obs['image'] = np.zeros((64, 64, 3))
-    #print(f'obs is {obs}')
+    obs['image'] = self._env.render()
+    #obs['image'] = np.zeros((64, 64, 3))
+    # print(f'obs is {obs}')
     # import time as tt
     # tt.sleep(3)
     return obs
 
   def reset(self):
     obs1 = np.array(self._env.reset())
+    obs1 = self.normalize_obs(obs1)
     #print('obs1 is ......................:\n', obs1.tolist())
     if not self._obs_is_dict:
       obs = {self._obs_key: obs1.tolist()}
+    
     obs['reward'] = 0.0
     obs['is_first'] = True
     obs['is_last'] = False
     obs['is_terminal'] = False
-    obs['image'] = np.zeros((64, 64, 3))
+    #obs['image'] = np.zeros((64, 64, 3))
+    obs['image'] = self._env.render()
     return obs
+  
+  def normalize_obs(self, obs):
+    return 1000*np.array(obs)
 
 
 class DMC:
