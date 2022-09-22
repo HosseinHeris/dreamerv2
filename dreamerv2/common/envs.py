@@ -8,11 +8,16 @@ import cloudpickle
 import gym
 import numpy as np
 
+from industrial_benchmark_python.IBGym import IBGym
+
 
 class GymWrapper:
 
   def __init__(self, env, obs_key='sensor', act_key='action'):
-    self._env = gym.make(env)
+    if type(env) == str:
+      self._env = gym.make(env)
+    else:
+      self._env = env
     self._obs_is_dict = hasattr(self._env.observation_space, 'spaces')
     self._act_is_dict = hasattr(self._env.action_space, 'spaces')
     print('is action dictionary', self._act_is_dict)
@@ -77,6 +82,12 @@ class GymWrapper:
     obs['is_terminal'] = False
     obs['image'] = np.zeros((64, 64, 3))
     return obs
+
+
+class ICB(GymWrapper):
+    def __init__(self):
+        env = IBGym(70, reward_type="delta")
+        super().__init__(env=env, obs_key="sensor")
 
 
 class DMC:

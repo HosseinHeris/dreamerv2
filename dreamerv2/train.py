@@ -5,6 +5,7 @@ import os
 import pathlib
 import re
 import sys
+from typing import Any, Dict, Optional
 import warnings
 
 try:
@@ -27,6 +28,26 @@ import agent
 import common
 
 
+def run_model_reuse_experiment(config1: common.Config, config2: common.Config):
+  # Train an agent 
+  agent1 = train(config1)
+
+  # Save the world model and policy from the first agent
+  agent1_wm_filename = 'agent1_wm.pkl'
+  agent1_policy_filename = 'agent1_policy.pkl'
+  agent1.wm.save(agent1_wm_filename)
+  agent1._task_behavior.save(agent1_policy_filename)
+
+  # Train a second agent with the same world model
+  agent2 = train(config2, pretrained_world_model=agent1_wm_filename)
+
+  # Save the world model and policy from the second agent
+  agent2_wm_filename = 'agent2_wm.pkl'
+  agent2_policy_filename = 'agent2_policy.pkl'
+  agent2.wm.save(agent2_wm_filename)
+  agent2._task_behavior.save(agent2_policy_filename)
+
+
 def main():
 
   configs = yaml.safe_load((
@@ -36,6 +57,13 @@ def main():
   for name in parsed.configs:
     config = config.update(configs[name])
   config = common.Flags(config).parse(remaining)
+  print(type(config))
+
+  return train(config)
+
+def train(config: Dict[str, Any], 
+          pretrained_world_model: Optional[str] = None,
+          pretrained_task_behavior: Optional[str] = None):
 
   logdir = pathlib.Path(config.logdir).expanduser()
   logdir.mkdir(parents=True, exist_ok=True)
@@ -95,6 +123,8 @@ def main():
       env = common.GymWrapper(task)
       env = common.NormalizeAction(env)
       #env = common.OneHotAction(env)
+    elif suite == 'icb':
+      env = common.ICB()
     else:
       raise NotImplementedError(suite)
     env = common.TimeLimit(env, config.time_limit)
@@ -116,7 +146,8 @@ def main():
     should = {'train': should_video_train, 'eval': should_video_eval}[mode]
     if should(step):
       for key in config.log_keys_video:
-        logger.video(f'{mode}_policy_{key}', ep[key])
+        if key != '$^':
+          logger.video(f'{mode}_policy_{key}', ep[key])
     replay = dict(train=train_replay, eval=eval_replay)[mode]
     logger.add(replay.stats, prefix=mode)
     logger.write()
@@ -158,10 +189,21 @@ def main():
   agnt = agent.Agent(config, obs_space, act_space, step)
   train_agent = common.CarryOverState(agnt.train)
   train_agent(next(train_dataset))
+  
   if (logdir / 'variables.pkl').exists():
+    print("Restoring agent from disk.")
     agnt.load(logdir / 'variables.pkl')
   else:
     print('Pretrain agent.')
+
+    if pretrained_world_model or pretrained_task_behavior:
+      if pretrained_world_model:
+        print(f"Using pretrained world model ({pretrained_world_model}).")
+        agnt.wm.load(pretrained_world_model)
+      if pretrained_task_behavior:
+        print(f"Using pretrained task behavior ({pretrained_task_behavior}).")
+        agnt._task_behavior.load(pretrained_task_behavior)
+
     for _ in range(config.pretrain):
       train_agent(next(train_dataset))
   train_policy = lambda *args: agnt.policy(
@@ -194,6 +236,8 @@ def main():
       env.close()
     except Exception:
       pass
+
+  return agnt
 
 
 if __name__ == '__main__':
