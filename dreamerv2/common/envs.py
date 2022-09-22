@@ -71,7 +71,7 @@ class GymWrapper:
 
   def reset(self):
     obs1 = np.array(self._env.reset())
-    print('obs1 is ......................:\n', obs1.tolist())
+    #print('obs1 is ......................:\n', obs1.tolist())
     if not self._obs_is_dict:
       obs = {self._obs_key: obs1.tolist()}
     obs['reward'] = 0.0
