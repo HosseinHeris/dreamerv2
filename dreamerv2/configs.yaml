@@ -39,7 +39,7 @@ defaults:
   # World Model
   grad_heads: [decoder, reward, discount]
   pred_discount: True
-  rssm: {ensemble: 1, hidden: 1024, deter: 1024, stoch: 16, discrete: 16, act: elu, norm: none, std_act: sigmoid2, min_std: 0.1}
+  rssm: {ensemble: 1, hidden: 1024, deter: 1024, stoch: 32, discrete: 32, act: elu, norm: none, std_act: sigmoid2, min_std: 0.1}
   encoder: {mlp_keys: '.*', cnn_keys: '.*', act: elu, norm: none, cnn_depth: 48, cnn_kernels: [4, 4, 4, 4], mlp_layers: [400, 400, 400, 400]}
   decoder: {mlp_keys: '.*', cnn_keys: '.*', act: elu, norm: none, cnn_depth: 48, cnn_kernels: [5, 5, 6, 6], mlp_layers: [400, 400, 400, 400]}
   reward_head: {layers: 4, units: 400, act: elu, norm: none, dist: mse}
@@ -167,12 +167,14 @@ gym:
   pred_discount: False
   replay.prioritize_ends: False
   grad_heads: [decoder, reward]
-  rssm: {hidden: 200, deter: 200}
+  rssm: {hidden: 400, deter: 400, stoch: 32, discrete: 32}
   model_opt.lr: 3e-4
   actor_opt.lr: 8e-5
   critic_opt.lr: 8e-5
   actor_ent: 1e-4
   kl.free: 1.0
+  imag_horizon: 10
+  precision: 16
 
 gymdiscrete:
   task: gydiscrete_CartPole-v0

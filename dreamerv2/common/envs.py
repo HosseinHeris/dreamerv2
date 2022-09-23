@@ -87,8 +87,7 @@ class GymWrapper:
     return obs
   
   def normalize_obs(self, obs):
-    return 1000*np.array(obs)
-
+    return 100*np.array(obs)
 
 class DMC:
 
