@@ -3,7 +3,7 @@ defaults:
   # Train Script
   logdir: /dev/null
   seed: 0
-  task: CartPole-v0
+  task: dmc_walker_walk
   envs: 1
   envs_parallel: none
   render_size: [64, 64]
@@ -137,7 +137,7 @@ dmc_vision:
 
 dmc_proprio:
 
-  task: dmc_cartpole_balance
+  task: dmc_walker_walk
   encoder: {mlp_keys: '.*', cnn_keys: '$^'}
   decoder: {mlp_keys: '.*', cnn_keys: '$^'}
   action_repeat: 2
@@ -154,7 +154,7 @@ dmc_proprio:
   critic_opt.lr: 8e-5
   actor_ent: 1e-4
   kl.free: 1.0
-  
+
 gym:
   task: gym_MountainCarContinuous-v0
   encoder: {mlp_keys: '.*', cnn_keys: '$^'}
@@ -167,7 +167,7 @@ gym:
   prefill: 50000
   train_every: 16
   clip_rewards: tanh
-  rssm: {hidden: 600, deter: 600}
+  rssm: {hidden: 64, deter: 64}
   model_opt.lr: 2e-4
   actor_opt.lr: 4e-5
   critic_opt.lr: 1e-4
@@ -196,6 +196,28 @@ gymdiscrete:
   discount: 0.999
   loss_scales.kl: 0.1
   loss_scales.discount: 5.0
+
+
+icb:
+
+  task: icb
+  encoder: {mlp_keys: '.*', cnn_keys: '$^'}
+  decoder: {mlp_keys: '.*', cnn_keys: '$^'}
+  eval_every: 1e4
+  prefill: 10000
+  pretrain: 100
+  clip_rewards: identity
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  rssm: {hidden: 200, deter: 200}
+  model_opt.lr: 3e-4
+  actor_opt.lr: 8e-5
+  critic_opt.lr: 8e-5
+  actor_ent: 1e-4
+  kl.free: 1.0
+  log_keys_video: ['$^']
+
 
 debug:
 
