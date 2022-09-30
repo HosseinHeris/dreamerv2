@@ -56,8 +56,8 @@ def main():
   train_replay = common.Replay(logdir / 'train_episodes', **config.replay)
   eval_replay = common.Replay(logdir / 'eval_episodes', **dict(
       capacity=config.replay.capacity // 10,
-      minlen=config.dataset.length,
-      maxlen=50))
+      minlen=config.replay.minlen,
+      maxlen=config.replay.maxlen))
   step = common.Counter(train_replay.stats['total_steps'])
   outputs = [
       common.TerminalOutput(),
@@ -94,6 +94,9 @@ def main():
       if task =='HouseEnergy-v0':
         env = common.GymWrapper(task)
         env = common.OneHotAction(env)
+      if task =='HouseEnergy-continuous-v0':
+        env = common.GymWrapper(task)
+        env = common.NormalizeAction(env) 
       elif task =='Moab-v0':  
         env = common.GymWrapper(task)
         env = common.NormalizeAction(env)
