@@ -1,0 +1,83 @@
+action_repeat: 1
+actor: {act: elu, dist: auto, layers: 2, min_std: 0.1, norm: none, units: 16}
+actor_ent: 0.001
+actor_grad: auto
+actor_grad_mix: 0.1
+actor_opt: {clip: 100, eps: 1e-05, lr: 0.001, opt: adam, wd: 1e-06}
+atari_grayscale: true
+clip_rewards: identity
+critic: {act: elu, dist: mse, layers: 2, norm: none, units: 16}
+critic_opt: {clip: 100, eps: 1e-05, lr: 0.001, opt: adam, wd: 1e-06}
+dataset: {batch: 8, length: 30}
+decoder:
+  act: elu
+  cnn_depth: 48
+  cnn_kernels: [5, 5, 6, 6]
+  cnn_keys: $^
+  mlp_keys: .*
+  mlp_layers: [16]
+  norm: none
+disag_action_cond: true
+disag_log: false
+disag_models: 10
+disag_offset: 1
+disag_target: stoch
+discount: 0.99
+discount_head: {act: elu, dist: binary, layers: 2, norm: none, units: 16}
+discount_lambda: 0.95
+dmc_camera: -1
+encoder:
+  act: elu
+  cnn_depth: 48
+  cnn_kernels: [4, 4, 4, 4]
+  cnn_keys: $^
+  mlp_keys: .*
+  mlp_layers: [16]
+  norm: none
+envs: 1
+envs_parallel: none
+eval_eps: 1
+eval_every: 10000.0
+eval_noise: 0.0
+eval_state_mean: false
+expl_behavior: greedy
+expl_extr_scale: 0.0
+expl_head: {act: elu, dist: mse, layers: 2, norm: none, units: 16}
+expl_intr_scale: 1.0
+expl_model_loss: kl
+expl_noise: 0.0
+expl_opt: {clip: 100, eps: 1e-05, lr: 0.0003, opt: adam, wd: 1e-06}
+expl_reward_norm: {eps: 1e-08, momentum: 1.0, scale: 1.0}
+expl_until: 0
+grad_heads: [decoder, reward]
+imag_horizon: 15
+jit: true
+kl: {balance: 0.8, forward: false, free: 1.0, free_avg: true}
+log_every: 10000.0
+log_keys_max: ^$
+log_keys_mean: ^$
+log_keys_sum: ^$
+log_keys_video: [image]
+logdir: /home/hkh-explore/disk2/logdir/gym_Moab_minmax15/dreamerv2/1
+loss_scales: {discount: 1.0, kl: 1.0, proprio: 1.0, reward: 1.0}
+model_opt: {clip: 100, eps: 1e-05, lr: 0.001, opt: adam, wd: 1e-06}
+precision: 16
+pred_discount: false
+prefill: 1000
+pretrain: 100
+render_size: [64, 64]
+replay: {capacity: 2000000.0, maxlen: 150, minlen: 30, ongoing: false, prioritize_ends: true}
+reward_head: {act: elu, dist: mse, layers: 2, norm: none, units: 16}
+reward_norm: {eps: 1e-08, momentum: 1.0, scale: 1.0}
+rssm: {act: elu, deter: 8, discrete: 8, ensemble: 1, hidden: 8, min_std: 0.1, norm: none,
+  std_act: sigmoid2, stoch: 8}
+seed: 0
+slow_baseline: true
+slow_target: true
+slow_target_fraction: 1
+slow_target_update: 100
+steps: 100000000.0
+task: gym_Moab-v0
+time_limit: 0
+train_every: 5
+train_steps: 1

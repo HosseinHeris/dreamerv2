@@ -3,6 +3,7 @@ import os
 import sys
 import threading
 import traceback
+from typing import Optional
 
 import cloudpickle
 import gym, bonsai_benchmark_gym
@@ -12,9 +13,12 @@ import numpy as np
 class GymWrapper:
 
   def __init__(self, env, obs_key='sensor', act_key='action'):
+    # 
     print('env is', env)
-    self._env = gym.make(env)
-
+    try:
+      self._env = gym.make(env, dyn_rand = 0.2)
+    except:
+      self._env = gym.make(env)
     self._obs_is_dict = hasattr(self._env.observation_space, 'spaces')
     self._act_is_dict = hasattr(self._env.action_space, 'spaces')
     print('is action dictionary', self._act_is_dict)
@@ -84,6 +88,7 @@ class GymWrapper:
   def reset(self):
     obs1 = self._env.reset()
     # in order to handle different version of gym. obs1 could be observation and info
+  
     try:
       obs1 = self.normalize_obs(np.array(obs1))
     except:

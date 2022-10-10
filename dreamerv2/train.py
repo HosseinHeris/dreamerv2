@@ -106,6 +106,9 @@ def main():
           env = common.OneHotAction(env)
         else:
           env = common.NormalizeAction(env)
+    elif suite =='gymdisc':
+      env = common.GymWrapper(task)
+      env = common.OneHotAction(env)
     else:
       raise NotImplementedError(suite)
     env = common.TimeLimit(env, config.time_limit)

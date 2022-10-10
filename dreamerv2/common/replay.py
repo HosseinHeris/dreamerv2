@@ -26,6 +26,9 @@ class Replay:
     self._ongoing_eps = collections.defaultdict(
         lambda: collections.defaultdict(list))
     self._total_episodes, self._total_steps = count_episodes(directory)
+    print('------------------------------------------------------------------------------')
+    print('total episodes and steps counted so far:', self._total_episodes, self._total_steps)
+    print('------------------------------------------------------------------------------')
     self._loaded_episodes = len(self._complete_eps)
     self._loaded_steps = sum(eplen(x) for x in self._complete_eps.values())
 
@@ -51,6 +54,7 @@ class Replay:
     if length < self._minlen:
       print(f'Skipping short episode of length {length}.')
       return
+    print('total steps so far:', self._total_steps)
     self._total_steps += length
     self._loaded_steps += length
     self._total_episodes += 1
@@ -158,6 +162,7 @@ def save_episode(directory, episode):
 def load_episodes(directory, capacity=None, minlen=1):
   # The returned directory from filenames to episodes is guaranteed to be in
   # temporally sorted order.
+  print('loading episodes ...............')
   filenames = sorted(directory.glob('*.npz'))
   if capacity:
     num_steps = 0
